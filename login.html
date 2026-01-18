@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | MemPass</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="card fade-in">
+            <div class="card-left">
+                <h1>Welcome Back</h1>
+                <p class="subtitle">Login with your memory-based password</p>
+                
+                <div class="security-indicator">
+                    <h3><i class="fas fa-shield-alt"></i> Secure Login</h3>
+                    <p>Your password is derived from personal memories, making it both secure and memorable</p>
+                </div>
+                
+                <div class="nav-links">
+                    <a href="index.html" class="nav-link">
+                        <i class="fas fa-home"></i> Home
+                    </a>
+                    <a href="signup.html" class="nav-link">
+                        <i class="fas fa-user-plus"></i> Need an account?
+                    </a>
+                </div>
+            </div>
+            
+            <div class="card-right">
+                <h2>Login to MemPass</h2>
+                
+                <div id="alertMessage" class="alert" style="display: none;"></div>
+                
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="loginEmail"><i class="fas fa-envelope"></i> Email or Username</label>
+                        <input type="text" id="loginEmail" name="loginEmail" required placeholder="Enter your email or username">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="loginPassword"><i class="fas fa-key"></i> Password</label>
+                        <input type="password" id="loginPassword" name="loginPassword" required placeholder="Enter your generated password">
+                        <div style="margin-top: 8px; font-size: 0.9rem; color: #64748b;">
+                            <i class="fas fa-lightbulb"></i> Tip: Remember the personal facts you used during signup
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="rememberMe"> Remember me for 30 days
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="btn">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </button>
+                    
+                    <div class="login-options">
+                        <a href="#" onclick="showPasswordHint()" style="color: #4f46e5; text-decoration: none;">
+                            <i class="fas fa-question-circle"></i> Forgot how your password was generated?
+                        </a>
+                    </div>
+                    
+                    <div class="divider">
+                        <span>Or continue with</span>
+                    </div>
+                    
+                    <div class="social-login">
+                        <button type="button" class="social-btn">
+                            <i class="fab fa-google" style="color: #DB4437;"></i> Google
+                        </button>
+                        <button type="button" class="social-btn">
+                            <i class="fab fa-microsoft" style="color: #0078d4;"></i> Microsoft
+                        </button>
+                    </div>
+                </form>
+                
+                <div id="passwordHint" style="display: none; margin-top: 30px; padding: 20px; background: #f8fafc; border-radius: 10px;">
+                    <h3><i class="fas fa-lightbulb"></i> Password Hint</h3>
+                    <p>Your password was generated from:</p>
+                    <ul id="hintList" style="margin-left: 20px; margin-top: 10px;">
+                        <!-- Hint items will be added here -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="login.js"></script>
+</body>
+</html>

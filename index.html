@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MemPass | Secure Memory-Based Passwords</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="card fade-in">
+            <div class="card-left">
+                <h1>MemPass</h1>
+                <p class="subtitle">Generate strong, memorable passwords based on your personal memories and facts</p>
+                
+                <div class="features">
+                    <h3><i class="fas fa-shield-alt"></i> OWASP Compliant</h3>
+                    <p>Following the latest security guidelines for password generation</p>
+                    
+                    <h3><i class="fas fa-brain"></i> Easy to Remember</h3>
+                    <p>Based on personal facts that only you know</p>
+                    
+                    <h3><i class="fas fa-lock"></i> Hard to Guess</h3>
+                    <p>Complex password generation while keeping it memorable</p>
+                </div>
+                
+                <div class="nav-links">
+                    <a href="login.html" class="nav-link">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </a>
+                    <a href="signup.html" class="nav-link">
+                        <i class="fas fa-user-plus"></i> Sign Up
+                    </a>
+                </div>
+            </div>
+            
+            <div class="card-right">
+                <h2>Welcome to MemPass</h2>
+                <p class="subtitle">Transform your personal memories into secure passwords</p>
+                
+                <div class="password-display">
+                    <div>
+                        <h3>Sample Generated Password</h3>
+                        <div id="demoPassword">P3t@Luna#89</div>
+                    </div>
+                    <button class="copy-btn" onclick="copyDemoPassword()">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                </div>
+                
+                <div class="security-indicator">
+                    <div class="strength-meter">
+                        <div class="strength-fill strong"></div>
+                    </div>
+                    <div class="strength-text">Strong Password</div>
+                </div>
+                
+                <div class="features">
+                    <div class="question-group">
+                        <h4><i class="fas fa-question-circle"></i> How it works:</h4>
+                        <p>Answer personal questions → We generate a secure password → You remember it easily</p>
+                    </div>
+                    
+                    <div class="question-group">
+                        <h4><i class="fas fa-check-circle"></i> Security Features:</h4>
+                        <ul style="margin-left: 20px; margin-top: 10px;">
+                            <li>Minimum 12 characters</li>
+                            <li>Mixed case letters</li>
+                            <li>Numbers and symbols</li>
+                            <li>Unique per account</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 30px;">
+                    <a href="signup.html" class="btn">Get Started Now</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function copyDemoPassword() {
+            const password = document.getElementById('demoPassword').textContent;
+            navigator.clipboard.writeText(password).then(() => {
+                alert('Sample password copied to clipboard!');
+            });
+        }
+    </script>
+</body>
+</html>
