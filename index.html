@@ -1,59 +1,235 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>MemPass | Secure Password Generator</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CIPHERLOCK — Cognitive Password Intelligence</title>
+<meta name="description" content="Analyze password security and cognitive load. Generate passwords that are hard to crack and easy to remember.">
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-<header>
-    <nav>
-        <h1>MemPass</h1>
-        <div class="nav-links">
-            <a href="signup.html">Sign Up</a>
-            <a href="login.html">Login</a>
-        </div>
-    </nav>
+<!-- Ambient background -->
+<canvas id="bg-particles" aria-hidden="true"></canvas>
+
+<a class="skip-link" href="#main">Skip to main content</a>
+
+<header class="topbar">
+  <div class="brand">
+    <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M16 2 L28 8 V16 C28 24 22 29 16 30 C10 29 4 24 4 16 V8 Z" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <path d="M16 12 a4 4 0 1 0 0.01 0" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <path d="M16 16 v6" stroke="currentColor" stroke-width="1.6"/>
+    </svg>
+    <div class="brand-text">
+      <span class="brand-name">CIPHERLOCK</span>
+      <span class="brand-tag">Cognitive Password Intelligence</span>
+    </div>
+  </div>
+
+  <nav class="topbar-actions" aria-label="App settings">
+    <button id="tutorialBtn" class="icon-btn" type="button" aria-haspopup="dialog">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 18.5h.01M12 15c0-2 2-2.2 2-4a2 2 0 0 0-4-.3" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round"/><circle cx="12" cy="12" r="9.3" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+      <span>Guide</span>
+    </button>
+    <button id="themeToggle" class="icon-btn" type="button" aria-pressed="false">
+      <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4 7 7 0 0 0 20 14.5Z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/></svg>
+      <span>Light mode</span>
+    </button>
+  </nav>
 </header>
 
-<section class="hero">
-    <div class="card">
-        <h2>Generate Secure & Memorable Passwords</h2>
-        <p>Answer a few personal prompts and generate a strong OWASP-compliant password instantly.</p>
+<main id="main" class="layout">
 
-        <div class="questions">
+  <!-- LEFT PANEL -->
+  <section class="panel panel-left" aria-labelledby="analyzeHeading">
+    <h2 id="analyzeHeading" class="panel-title"><span class="panel-index">01</span> Analyze a password</h2>
 
-    <label><input type="checkbox" value="pet"> Name of your first pet</label>
-    <input type="text" id="pet" placeholder="Answer">
-
-    <label><input type="checkbox" value="city"> City you were born in</label>
-    <input type="text" id="city" placeholder="Answer">
-
-    <label><input type="checkbox" value="food"> Favorite food</label>
-    <input type="text" id="food" placeholder="Answer">
-
-    <label><input type="checkbox" value="school"> Name of your primary school</label>
-    <input type="text" id="school" placeholder="Answer">
-
-    <label><input type="checkbox" value="mother"> Mother’s first name</label>
-    <input type="text" id="mother" placeholder="Answer">
-
-    <label><input type="checkbox" value="movie"> Favorite movie</label>
-    <input type="text" id="movie" placeholder="Answer">
-
-    <label><input type="checkbox" value="dream"> Dream job as a child</label>
-    <input type="text" id="dream" placeholder="Answer">
-
-</div>
-
-        <button onclick="generatePassword()">Generate Password</button>
-
-        <div id="password-output" class="output"></div>
+    <div class="field-group">
+      <label for="pwInput" class="field-label">Password to evaluate</label>
+      <div class="pw-input-wrap">
+        <input id="pwInput" type="password" autocomplete="new-password" spellcheck="false"
+               placeholder="Start typing to see live analysis…" aria-describedby="pwChecklist">
+        <button id="pwToggleVis" class="ghost-icon-btn" type="button" aria-label="Show password">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7Z" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="12" cy="12" r="2.6" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>
+        </button>
+      </div>
     </div>
-</section>
 
-<script src="js/script.js"></script>
+    <ul id="pwChecklist" class="checklist" aria-label="Live requirement checks">
+      <li data-check="length"><span class="check-dot" aria-hidden="true"></span>At least 12 characters</li>
+      <li data-check="upper"><span class="check-dot" aria-hidden="true"></span>Uppercase letter</li>
+      <li data-check="lower"><span class="check-dot" aria-hidden="true"></span>Lowercase letter</li>
+      <li data-check="number"><span class="check-dot" aria-hidden="true"></span>Number</li>
+      <li data-check="symbol"><span class="check-dot" aria-hidden="true"></span>Symbol</li>
+      <li data-check="pattern"><span class="check-dot" aria-hidden="true"></span>No common patterns</li>
+      <li data-check="entropy"><span class="check-dot" aria-hidden="true"></span>Good entropy</li>
+      <li data-check="cogload"><span class="check-dot" aria-hidden="true"></span>Low cognitive load</li>
+      <li data-check="memorability"><span class="check-dot" aria-hidden="true"></span>High memorability</li>
+    </ul>
+
+    <div class="insight-box" id="insightBox" aria-live="polite">
+      <h3 class="insight-title">Security insight</h3>
+      <p id="insightText">Type a password to receive tailored feedback here.</p>
+    </div>
+
+    <details class="compare-block" id="compareBlock">
+      <summary>Compare two passwords</summary>
+      <div class="compare-grid">
+        <div class="field-group">
+          <label for="cmpA" class="field-label">Password A</label>
+          <input id="cmpA" type="text" autocomplete="off" spellcheck="false" placeholder="e.g. Tr0ub4dor&amp;3">
+        </div>
+        <div class="field-group">
+          <label for="cmpB" class="field-label">Password B</label>
+          <input id="cmpB" type="text" autocomplete="off" spellcheck="false" placeholder="e.g. correcthorsebatterystaple">
+        </div>
+      </div>
+      <button id="cmpRun" class="btn-secondary" type="button">Compare</button>
+      <div id="cmpResult" class="cmp-result" aria-live="polite"></div>
+    </details>
+  </section>
+
+  <!-- CENTER PANEL -->
+  <section class="panel panel-center" aria-labelledby="meterHeading">
+    <h2 id="meterHeading" class="panel-title"><span class="panel-index">02</span> Strength reading</h2>
+
+    <div class="gauge-wrap">
+      <svg id="gaugeSvg" viewBox="0 0 240 240" class="gauge" role="img" aria-label="Overall strength score">
+        <circle class="gauge-track" cx="120" cy="120" r="100"/>
+        <circle id="gaugeFill" class="gauge-fill" cx="120" cy="120" r="100"/>
+      </svg>
+      <div class="gauge-center">
+        <span id="gaugeScore" class="gauge-score">0</span>
+        <span class="gauge-max">/100</span>
+        <span id="gaugeLabel" class="gauge-label">—</span>
+      </div>
+    </div>
+
+    <div class="rating-row">
+      <div class="rating-chip" id="ratingOverall">
+        <span class="rating-key">Overall</span>
+        <span class="rating-val" data-val>Weak</span>
+      </div>
+      <div class="rating-chip" id="ratingCog">
+        <span class="rating-key">Cognitive load</span>
+        <span class="rating-val" data-val>—</span>
+      </div>
+      <div class="rating-chip" id="ratingMem">
+        <span class="rating-key">Memorability</span>
+        <span class="rating-val" data-val>—</span>
+      </div>
+    </div>
+
+    <div class="metric-block">
+      <div class="metric-head">
+        <span>Entropy</span>
+        <span id="entropyBits">0 bits</span>
+      </div>
+      <div class="bar-track"><div id="entropyBar" class="bar-fill bar-cyan"></div></div>
+    </div>
+
+    <div class="metric-block">
+      <div class="metric-head">
+        <span>Attack resistance</span>
+        <span id="resistanceLabel">—</span>
+      </div>
+      <div class="bar-track"><div id="resistanceBar" class="bar-fill bar-violet"></div></div>
+    </div>
+
+    <div class="radar-wrap">
+      <span class="metric-head-label">Complexity radar</span>
+      <svg id="radarSvg" viewBox="0 0 220 220" class="radar" role="img" aria-label="Complexity radar chart"></svg>
+    </div>
+
+    <div class="crack-time-block">
+      <span class="metric-head-label">Estimated crack time</span>
+      <div class="crack-time-grid">
+        <div class="crack-time-card">
+          <span class="ct-label">Online (throttled)</span>
+          <span id="ctOnline" class="ct-value">Instantly</span>
+        </div>
+        <div class="crack-time-card">
+          <span class="ct-label">Offline (fast hash)</span>
+          <span id="ctOffline" class="ct-value">Instantly</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RIGHT PANEL -->
+  <section class="panel panel-right" aria-labelledby="genHeading">
+    <h2 id="genHeading" class="panel-title"><span class="panel-index">03</span> Generate a password</h2>
+
+    <div class="strategy-tabs" role="tablist" aria-label="Generator strategy">
+      <button class="strategy-tab is-active" role="tab" aria-selected="true" data-strategy="random">Random secure</button>
+      <button class="strategy-tab" role="tab" aria-selected="false" data-strategy="passphrase">Memorable passphrase</button>
+      <button class="strategy-tab" role="tab" aria-selected="false" data-strategy="cognitive">Cognitive optimized</button>
+      <button class="strategy-tab" role="tab" aria-selected="false" data-strategy="entropy">High entropy</button>
+    </div>
+
+    <div class="gen-controls">
+      <div class="control-row">
+        <label for="lenRange" class="field-label">Length <span id="lenVal">16</span></label>
+        <input id="lenRange" type="range" min="8" max="40" value="16">
+      </div>
+      <div class="toggle-grid">
+        <label class="toggle"><input type="checkbox" id="optUpper" checked><span>Uppercase</span></label>
+        <label class="toggle"><input type="checkbox" id="optLower" checked><span>Lowercase</span></label>
+        <label class="toggle"><input type="checkbox" id="optNumber" checked><span>Numbers</span></label>
+        <label class="toggle"><input type="checkbox" id="optSymbol" checked><span>Symbols</span></label>
+        <label class="toggle"><input type="checkbox" id="optSeparator" checked><span>Separators</span></label>
+      </div>
+    </div>
+
+    <button id="generateBtn" class="btn-primary" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round"/></svg>
+      Generate password
+    </button>
+
+    <div class="gen-output">
+      <code id="genOutput" aria-live="polite">Press generate to begin</code>
+      <button id="copyBtn" class="ghost-icon-btn" type="button" aria-label="Copy generated password">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>
+      </button>
+    </div>
+    <p id="copyStatus" class="copy-status" role="status"></p>
+
+    <div class="gen-mini-stats" id="genMiniStats" aria-live="polite"></div>
+
+    <div class="history-block">
+      <div class="history-head">
+        <span class="metric-head-label">Score history</span>
+        <button id="clearHistory" class="text-btn" type="button">Clear</button>
+      </div>
+      <svg id="trendSvg" viewBox="0 0 280 70" class="trend" role="img" aria-label="Strength score trend over recent checks"></svg>
+      <ul id="historyList" class="history-list"></ul>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <p>CIPHERLOCK runs entirely in your browser. No password is ever transmitted, stored remotely, or logged.</p>
+</footer>
+
+<!-- Tutorial dialog -->
+<dialog id="tutorialDialog" class="tutorial-dialog">
+  <h2>How CIPHERLOCK reads a password</h2>
+  <ol class="tutorial-steps">
+    <li><strong>Security strength</strong> measures resistance to guessing: length, character variety, entropy, and known weak patterns.</li>
+    <li><strong>Cognitive load</strong> measures how much mental effort the password takes to recall — randomness that's hard to type twice in a row.</li>
+    <li><strong>Memorability</strong> rewards structure a human mind can hold onto: pronounceable chunks, real words, and separators — without falling back on predictable sequences.</li>
+    <li>Use the generator on the right to build a password tuned to whichever balance of security and memorability you need.</li>
+  </ol>
+  <button id="tutorialClose" class="btn-primary" type="button">Got it</button>
+</dialog>
+
+<script src="wordlists.js"></script>
+<script src="entropyEngine.js"></script>
+<script src="cognitiveLoad.js"></script>
+<script src="passwordAnalyzer.js"></script>
+<script src="passwordGenerator.js"></script>
+<script src="uiController.js"></script>
 </body>
 </html>

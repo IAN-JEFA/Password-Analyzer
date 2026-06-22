@@ -1,62 +1,58 @@
-# Password-Analyzer
+# CIPHERLOCK — Cognitive Password Intelligence
 
-<think>
-First, the user is asking me to use the link https://ian-jefa.github.io/Password-Analyzer/ to compose what to write in the README section on GitHub.
+A password strength analyzer and generator that scores **security** the
+usual way (entropy, character diversity, pattern detection) and also scores
+**cognitive load** — how much mental effort a password takes to recall —
+so you can pick a password that's actually hard to crack *and* realistic
+to remember.
 
+## Running it
 
-## Assisting with README content  
-- The user provided a link to a Password Analyzer tool at https://ian-jefa.github.io/Password-Analyzer/ for composing GitHub README content.  
-- This appears to be a request for help in drafting descriptive text for the project's README section.
-</think># Password Analyzer
+No build step. Open `index.html` in any modern browser, or serve the folder:
 
-## Overview
+```bash
+python3 -m http.server 8000
+# then visit http://localhost:8000
+```
 
-Password Analyzer is a web-based tool designed to help users evaluate the strength of their passwords. It provides real-time feedback on password security, including checks for length, complexity, common patterns, and potential vulnerabilities. This tool aims to promote better password practices by educating users on creating stronger, more secure passwords.
+Everything runs client-side. No password you type is ever sent anywhere.
 
-## Features
+## Architecture
 
-- **Real-time Analysis**: Instantly assess password strength as you type.
-- **Detailed Feedback**: Receive specific suggestions for improving weak passwords, such as adding uppercase letters, numbers, or special characters.
-- **Security Metrics**: Displays scores based on factors like entropy, dictionary attacks, and brute-force resistance.
-- **User-Friendly Interface**: Simple, intuitive design accessible via any web browser.
-- **No Data Storage**: All analysis happens locally in your browser—no passwords are sent to servers or stored.
+```
+index.html              Semantic layout: header / main (3 panels) / footer
+css/styles.css           Dark cybersecurity theme, glassmorphism, SVG/gauge styling
+js/wordlists.js          Word banks + pattern data (sequences, keyboard rows, known-weak list)
+js/entropyEngine.js      EntropyEngine — pool size, entropy bits, crack-time math
+js/cognitiveLoad.js      CognitiveLoadCalculator — pronounceability, chunking, memorability
+js/passwordAnalyzer.js   PasswordAnalyzer — pattern detection + scoring + insights
+js/passwordGenerator.js  PasswordGenerator — 4 generation strategies (crypto-secure RNG)
+js/uiController.js       UIController — DOM wiring, SVG rendering, history, theme, particles
+```
 
-## How to Use
+Each engine is a standalone ES6 class with no DOM dependencies except
+`UIController`, which is the only file that touches `document`.
 
-1. Visit the live site: [https://ian-jefa.github.io/Password-Analyzer/](https://ian-jefa.github.io/Password-Analyzer/)
-2. Enter a password in the input field.
-3. View the strength meter and feedback messages.
-4. Follow the suggestions to strengthen your password.
+## Notable design decisions
 
-## Installation (For Developers)
+- **Security and memorability are scored independently**, then combined into
+  an overall rating — a password can be "Strong but hard to remember" or
+  "Excellent recall but weak," and the UI says so explicitly via the
+  insight box rather than collapsing both into one number.
+- **Crack-time estimates use two attacker models** (a rate-limited login
+  form vs. an offline GPU attack against a fast, unsalted hash) because a
+  single "time to crack" number is misleading — the real answer depends on
+  where the password is being attacked.
+- **All randomness for generation uses `crypto.getRandomValues`**, never
+  `Math.random()`, since this is the one place where weak randomness would
+  actually matter.
+- **No frameworks, no build tooling.** Per the brief, this is intentionally
+  vanilla HTML/CSS/JS so the whole thing can be read top to bottom.
 
-If you'd like to run or modify this project locally:
+## Known limitations
 
-1. Clone the repository:
-   ```
-   git clone https://github.com/ian-jefa/Password-Analyzer.git
-   ```
-2. Open `index.html` in your web browser (no server required for basic functionality).
-3. For development, you can use a local server like Live Server in VS Code.
-
-## Technologies Used
-
-- HTML5
-- CSS3
-- JavaScript (Vanilla JS for analysis logic)
-
-## Contributing
-
-Contributions are welcome! If you have ideas for new features, bug fixes, or improvements:
-
-1. Fork the repository.
-2. Create a new branch for your changes.
-3. Submit a pull request with a clear description of your updates.
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-## Disclaimer
-
-This tool is for educational purposes only. While it provides useful insights, no password analyzer can guarantee absolute security. Always use unique, strong passwords and consider using a password manager for better security practices.
+- Pattern and dictionary detection use small, illustrative word lists —
+  not a real breach-corpus or full dictionary — so treat the "no common
+  patterns" / "meaningful word" checks as directional, not exhaustive.
+- Crack-time math is an average-case estimate (`keyspace / 2 / rate`), a
+  standard simplification, not a guarantee.
