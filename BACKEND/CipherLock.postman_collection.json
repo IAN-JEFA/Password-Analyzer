@@ -1,0 +1,153 @@
+{
+  "info": {
+    "name": "CIPHERLOCK Backend API",
+    "description": "Cognitive Load-Based Password Strength Analysis & Intelligent Password Generator — backend API collection.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" }
+  ],
+  "item": [
+    {
+      "name": "Health check",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health"
+      }
+    },
+    {
+      "name": "Analyze — strong password",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/analyze",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"password\": \"BlueTiger!42Moon\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Analyze — known-weak password",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/analyze",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"password\": \"password123\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Analyze — validation error (empty password)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/analyze",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"password\": \"\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Generate — random secure",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/generate",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"strategy\": \"random\",\n  \"length\": 16\n}"
+        }
+      }
+    },
+    {
+      "name": "Generate — memorable passphrase",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/generate",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"strategy\": \"passphrase\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Generate — cognitive optimized",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/generate",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"strategy\": \"cognitive\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Generate — high entropy",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/generate",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"strategy\": \"entropy\",\n  \"length\": 20\n}"
+        }
+      }
+    },
+    {
+      "name": "Generate — list strategies",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/generate/strategies"
+      }
+    },
+    {
+      "name": "Breach check",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/breach-check",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"password\": \"password123\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Analytics snapshot",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/analytics"
+      }
+    },
+    {
+      "name": "PDF report — from password",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/report",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"password\": \"BlueTiger!42Moon\"\n}"
+        }
+      }
+    },
+    {
+      "name": "PDF report — from precomputed analysis",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/report",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"analysis\": {\n    \"strengthScore\": 92,\n    \"entropy\": 104,\n    \"crackTime\": \"2 million years\",\n    \"cognitiveLoad\": \"Low\",\n    \"memorability\": \"Excellent\",\n    \"rating\": \"Elite\",\n    \"feedback\": [\"Excellent entropy\", \"Strong chunking structure\"]\n  }\n}"
+        }
+      }
+    }
+  ]
+}
