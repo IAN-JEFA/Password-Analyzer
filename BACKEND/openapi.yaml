@@ -1,0 +1,254 @@
+openapi: 3.0.3
+info:
+  title: CIPHERLOCK Backend API
+  description: >
+    Cognitive Load-Based Password Strength Analysis & Intelligent
+    Password Generator — REST API. All endpoints are stateless except
+    for anonymized, metrics-only analytics persistence.
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000
+    description: Local development
+tags:
+  - name: Analysis
+  - name: Generator
+  - name: Breach
+  - name: Analytics
+  - name: Report
+
+paths:
+  /health:
+    get:
+      summary: Liveness check
+      responses:
+        "200":
+          description: Service is up
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  status: { type: string }
+                  timestamp: { type: string, format: date-time }
+
+  /api/analyze:
+    post:
+      tags: [Analysis]
+      summary: Run a full security + cognitive-load analysis on a password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password:
+                  type: string
+                  example: "BlueTiger!42Moon"
+      responses:
+        "200":
+          description: Analysis result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalysisResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /api/generate:
+    post:
+      tags: [Generator]
+      summary: Generate a password using one of four strategies
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateRequest"
+      responses:
+        "200":
+          description: Generated password with its own analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerateResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /api/generate/strategies:
+    get:
+      tags: [Generator]
+      summary: List available generator strategies
+      responses:
+        "200":
+          description: Strategy list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      strategies:
+                        type: array
+                        items: { type: string }
+
+  /api/breach-check:
+    post:
+      tags: [Breach]
+      summary: Check a password against known breaches via k-anonymity (HIBP)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password: { type: string }
+      responses:
+        "200":
+          description: Breach check result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      breached: { type: boolean }
+                      timesSeen: { type: integer }
+                      recommendation: { type: string }
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "503":
+          description: Upstream breach-check service unavailable
+
+  /api/analytics:
+    get:
+      tags: [Analytics]
+      summary: Aggregate, anonymous usage analytics
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Analytics snapshot
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      averageStrength: { type: number }
+                      averageEntropy: { type: number }
+                      mostUsedStrategy: { type: string, nullable: true }
+                      breachRate: { type: string }
+
+  /api/report:
+    post:
+      tags: [Report]
+      summary: Generate a downloadable PDF security report
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                  description: Provide this OR `analysis`, not both.
+                analysis:
+                  type: object
+                  description: A precomputed /api/analyze `data` object.
+      responses:
+        "200":
+          description: PDF file stream
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        Only enforced when ADMIN_ROUTES_PROTECTED=true. Disabled by
+        default — see README.
+
+  responses:
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, example: false }
+              error: { type: string }
+
+  schemas:
+    GenerateRequest:
+      type: object
+      properties:
+        strategy:
+          type: string
+          enum: [random, passphrase, cognitive, entropy]
+          default: random
+        length: { type: integer, minimum: 8, maximum: 64, default: 16 }
+        upper: { type: boolean, default: true }
+        lower: { type: boolean, default: true }
+        number: { type: boolean, default: true }
+        symbol: { type: boolean, default: true }
+        separator: { type: boolean, default: true }
+
+    AnalysisResponse:
+      type: object
+      properties:
+        success: { type: boolean }
+        data:
+          type: object
+          properties:
+            strengthScore: { type: integer, example: 92 }
+            entropy: { type: number, example: 104 }
+            crackTime: { type: string, example: "2 million years" }
+            crackTimeOnline: { type: string }
+            cognitiveLoad: { type: string, enum: [Low, Medium, High] }
+            memorability: { type: string, enum: [Poor, Fair, Good, Excellent] }
+            rating: { type: string, enum: [Weak, Moderate, Strong, Elite] }
+            feedback:
+              type: array
+              items: { type: string }
+            details: { type: object }
+
+    GenerateResponse:
+      type: object
+      properties:
+        success: { type: boolean }
+        data:
+          type: object
+          properties:
+            password: { type: string }
+            strategy: { type: string }
+            options: { type: object }
+            entropy: { type: number }
+            strengthScore: { type: integer }
+            rating: { type: string }
+            memorability: { type: string }
+            cognitiveLoad: { type: string }
+            crackTime: { type: string }
