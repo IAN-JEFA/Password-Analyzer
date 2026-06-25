@@ -494,3 +494,4 @@ class UIController {
 document.addEventListener("DOMContentLoaded", () => {
   new UIController();
 });
+

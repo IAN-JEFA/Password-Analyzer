@@ -27,7 +27,7 @@
     "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
-    "jest": "^29.7.0",
+    "jest": "^25.0.0",
     "nodemon": "^3.1.7",
     "supertest": "^7.0.0"
   }
