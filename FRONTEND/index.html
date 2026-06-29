@@ -28,6 +28,10 @@
   </div>
 
   <nav class="topbar-actions" aria-label="App settings">
+    <span id="backendStatus" class="status-pill" aria-live="polite" title="Whether CIPHERLOCK is using the backend API or its local fallback engines">
+      <span class="status-dot" aria-hidden="true"></span>
+      <span class="status-text">Checking backend…</span>
+    </span>
     <button id="tutorialBtn" class="icon-btn" type="button" aria-haspopup="dialog">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 18.5h.01M12 15c0-2 2-2.2 2-4a2 2 0 0 0-4-.3" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round"/><circle cx="12" cy="12" r="9.3" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
       <span>Guide</span>
@@ -88,6 +92,11 @@
       <button id="cmpRun" class="btn-secondary" type="button">Compare</button>
       <div id="cmpResult" class="cmp-result" aria-live="polite"></div>
     </details>
+
+    <div class="breach-block">
+      <button id="breachCheckBtn" class="btn-secondary" type="button">Check known data breaches</button>
+      <p id="breachResult" class="breach-result" aria-live="polite"></p>
+    </div>
   </section>
 
   <!-- CENTER PANEL -->
@@ -197,6 +206,11 @@
 
     <div class="gen-mini-stats" id="genMiniStats" aria-live="polite"></div>
 
+    <div class="report-block">
+      <button id="downloadReportBtn" class="btn-secondary" type="button">Download PDF report</button>
+      <p id="reportStatus" class="copy-status" role="status"></p>
+    </div>
+
     <div class="history-block">
       <div class="history-head">
         <span class="metric-head-label">Score history</span>
@@ -210,7 +224,7 @@
 </main>
 
 <footer class="footer">
-  <p>CIPHERLOCK runs entirely in your browser. No password is ever transmitted, stored remotely, or logged.</p>
+  <p>CIPHERLOCK uses its local backend when available, and falls back to fully in-browser analysis otherwise. No password is ever transmitted to or stored by any third party.</p>
 </footer>
 
 <!-- Tutorial dialog -->
@@ -225,11 +239,18 @@
   <button id="tutorialClose" class="btn-primary" type="button">Got it</button>
 </dialog>
 
+<script>
+  // Change this if your backend runs on a different host/port.
+  // Live Server (VS Code) typically serves this frontend on http://127.0.0.1:5500.
+  window.CIPHERLOCK_API_BASE_URL = "http://localhost:5000";
+</script>
 <script src="js/wordlists.js"></script>
 <script src="js/entropyEngine.js"></script>
 <script src="js/cognitiveLoad.js"></script>
 <script src="js/passwordAnalyzer.js"></script>
 <script src="js/passwordGenerator.js"></script>
+<script src="js/apiClient.js"></script>
+<script src="js/backendAdapter.js"></script>
 <script src="js/uiController.js"></script>
 </body>
 </html>

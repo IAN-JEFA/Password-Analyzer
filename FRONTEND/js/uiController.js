@@ -59,12 +59,20 @@ class UIController {
       themeToggle: document.getElementById("themeToggle"),
       tutorialBtn: document.getElementById("tutorialBtn"),
       tutorialDialog: document.getElementById("tutorialDialog"),
-      tutorialClose: document.getElementById("tutorialClose")
+      tutorialClose: document.getElementById("tutorialClose"),
+
+      backendStatus: document.getElementById("backendStatus"),
+      breachCheckBtn: document.getElementById("breachCheckBtn"),
+      breachResult: document.getElementById("breachResult"),
+      downloadReportBtn: document.getElementById("downloadReportBtn"),
+      reportStatus: document.getElementById("reportStatus")
     };
 
     this.state = {
       strategy: "random",
-      history: this.loadHistory()
+      history: this.loadHistory(),
+      backendOnline: null,
+      lastGeneratedPassword: null
     };
 
     this.GAUGE_CIRCUMFERENCE = 2 * Math.PI * 100; // r=100
@@ -74,6 +82,7 @@ class UIController {
     this.renderHistoryList();
     this.initTheme();
     this.initParticles();
+    this.checkBackendStatus();
     this.runAnalysis(""); // initial empty state render
   }
 
@@ -83,11 +92,11 @@ class UIController {
     let debounceTimer = null;
     this.dom.pwInput.addEventListener("input", () => {
       clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
+      debounceTimer = setTimeout(async () => {
         const value = this.dom.pwInput.value;
-        const result = this.runAnalysis(value);
+        const result = await this.runAnalysis(value);
         if (value.length >= 4) this.pushHistory(result);
-      }, 120);
+      }, 200); // slightly longer than a pure-local debounce — gives a network call room to land
     });
 
     this.dom.pwToggleVis.addEventListener("click", () => {
@@ -123,6 +132,9 @@ class UIController {
 
     this.dom.themeToggle.addEventListener("click", () => this.toggleTheme());
 
+    this.dom.breachCheckBtn.addEventListener("click", () => this.runBreachCheck());
+    this.dom.downloadReportBtn.addEventListener("click", () => this.downloadReport());
+
     this.dom.tutorialBtn.addEventListener("click", () => this.dom.tutorialDialog.showModal());
     this.dom.tutorialClose.addEventListener("click", () => this.dom.tutorialDialog.close());
 
@@ -134,10 +146,49 @@ class UIController {
     }
   }
 
+  // ---------------- Backend connectivity ----------------
+
+  async checkBackendStatus() {
+    try {
+      await cipherlockApi.health();
+      this.setBackendStatus(true);
+    } catch {
+      this.setBackendStatus(false);
+    }
+  }
+
+  setBackendStatus(online) {
+    if (this.state.backendOnline === online) return;
+    this.state.backendOnline = online;
+    const pill = this.dom.backendStatus;
+    pill.classList.toggle("is-online", online);
+    pill.classList.toggle("is-offline", !online);
+    pill.querySelector(".status-text").textContent = online
+      ? "Backend connected"
+      : "Local analysis only";
+  }
+
   // ---------------- Analysis rendering ----------------
 
-  runAnalysis(password) {
-    const result = this.analyzer.analyze(password);
+  /** Tries the backend's /api/analyze first; transparently falls back to the
+   *  in-browser engines if the backend is unreachable or errors. Either way,
+   *  the result shape handed to render* is identical (see backendAdapter.js). */
+  async runAnalysis(password) {
+    let result;
+
+    if (!password) {
+      result = this.analyzer.analyze("");
+    } else {
+      try {
+        const apiData = await cipherlockApi.analyze(password);
+        result = adaptBackendAnalysis(password, apiData);
+        this.setBackendStatus(true);
+      } catch (err) {
+        this.setBackendStatus(false);
+        result = this.analyzer.analyze(password);
+      }
+    }
+
     this.renderChecklist(result);
     this.renderGauge(result);
     this.renderRatings(result);
@@ -293,6 +344,33 @@ class UIController {
     this.dom.cmpResult.innerHTML = html;
   }
 
+  // ---------------- Breach check (backend-only — no local fallback exists) ----------------
+
+  async runBreachCheck() {
+    const password = this.dom.pwInput.value;
+    if (!password) {
+      this.dom.breachResult.textContent = "Type a password above first.";
+      this.dom.breachResult.className = "breach-result";
+      return;
+    }
+
+    this.dom.breachResult.textContent = "Checking…";
+    this.dom.breachResult.className = "breach-result";
+
+    try {
+      const data = await cipherlockApi.breachCheck(password);
+      this.setBackendStatus(true);
+      this.dom.breachResult.textContent = data.breached
+        ? `Found in known breaches (seen ${data.timesSeen.toLocaleString()} times). ${data.recommendation}`
+        : `Not found in known breaches. ${data.recommendation}`;
+      this.dom.breachResult.className = `breach-result ${data.breached ? "is-breached" : "is-clean"}`;
+    } catch (err) {
+      this.setBackendStatus(false);
+      this.dom.breachResult.textContent = "Breach checking requires the backend to be running and reachable.";
+      this.dom.breachResult.className = "breach-result";
+    }
+  }
+
   // ---------------- Generator ----------------
 
   collectGenOptions() {
@@ -306,14 +384,26 @@ class UIController {
     };
   }
 
-  runGeneration() {
+  async runGeneration() {
     const opts = this.collectGenOptions();
-    const password = this.generator.generate(this.state.strategy, opts);
-    this.dom.genOutput.textContent = password;
+    let password, statResult;
 
-    const result = this.analyzer.analyze(password);
-    this.renderGenMiniStats(result);
-    this.pushHistory(result, this.state.strategy);
+    try {
+      const apiData = await cipherlockApi.generate(this.state.strategy, opts);
+      password = apiData.password;
+      statResult = adaptBackendGeneration(apiData);
+      this.setBackendStatus(true);
+    } catch (err) {
+      this.setBackendStatus(false);
+      password = this.generator.generate(this.state.strategy, opts);
+      statResult = this.analyzer.analyze(password);
+    }
+
+    this.dom.genOutput.textContent = password;
+    this.state.lastGeneratedPassword = password;
+
+    this.renderGenMiniStats(statResult);
+    this.pushHistory(statResult, this.state.strategy);
     this.dom.copyStatus.textContent = "";
   }
 
@@ -338,6 +428,40 @@ class UIController {
       this.dom.copyStatus.textContent = "Copy failed — select and copy manually.";
     }
     setTimeout(() => { this.dom.copyStatus.textContent = ""; }, 2500);
+  }
+
+  // ---------------- PDF report (backend-only — no local fallback exists) ----------------
+
+  async downloadReport() {
+    const password = this.dom.pwInput.value || this.state.lastGeneratedPassword;
+    if (!password) {
+      this.dom.reportStatus.textContent = "Type or generate a password first.";
+      setTimeout(() => { this.dom.reportStatus.textContent = ""; }, 3000);
+      return;
+    }
+
+    this.dom.reportStatus.textContent = "Generating report…";
+    try {
+      const blob = await cipherlockApi.downloadReport({ password });
+      this.setBackendStatus(true);
+      this.triggerBlobDownload(blob, `cipherlock-report-${Date.now()}.pdf`);
+      this.dom.reportStatus.textContent = "Report downloaded.";
+    } catch (err) {
+      this.setBackendStatus(false);
+      this.dom.reportStatus.textContent = "PDF reports require the backend to be running and reachable.";
+    }
+    setTimeout(() => { this.dom.reportStatus.textContent = ""; }, 3500);
+  }
+
+  triggerBlobDownload(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   }
 
   // ---------------- History (localStorage) ----------------
@@ -494,10 +618,3 @@ class UIController {
 document.addEventListener("DOMContentLoaded", () => {
   new UIController();
 });
-
-const response = await fetch("http://localhost:5000/api/analyze", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ password })
-});
-const { data } = await response.json();

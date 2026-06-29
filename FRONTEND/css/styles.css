@@ -111,6 +111,20 @@ body{
 .icon-btn svg{ width:16px; height:16px; }
 .icon-btn:hover{ color: var(--primary); border-color: var(--border-glow); box-shadow: 0 0 18px -6px var(--border-glow); }
 
+.status-pill{
+  display:flex; align-items:center; gap: 7px;
+  background: var(--surface-glass); border: 1px solid var(--border-soft);
+  color: var(--text-mid); padding: 8px 14px; border-radius: 999px; font-size: 0.74rem;
+}
+.status-dot{
+  width: 8px; height: 8px; border-radius: 50%; background: var(--text-low); flex-shrink:0;
+  transition: var(--transition);
+}
+.status-pill.is-online .status-dot{ background: var(--secondary); box-shadow: 0 0 8px var(--secondary); }
+.status-pill.is-online{ color: var(--secondary); border-color: rgba(0,255,163,0.3); }
+.status-pill.is-offline .status-dot{ background: var(--warning); box-shadow: 0 0 8px var(--warning); }
+.status-pill.is-offline{ color: var(--warning); border-color: rgba(255,176,32,0.3); }
+
 /* ---------------- Layout ---------------- */
 .layout{
   display:grid;
@@ -213,6 +227,16 @@ input[type="text"]:focus, input[type="password"]:focus{
 .cmp-result{ margin-top: 12px; display:grid; gap: 8px; font-size: 0.82rem; color: var(--text-mid); }
 .cmp-row{ display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; align-items:center; }
 .cmp-row .winner{ color: var(--secondary); font-weight: 700; }
+
+/* ---------------- Breach check ---------------- */
+.breach-block{ border-top: 1px solid var(--border-soft); padding-top: 14px; margin-top: 14px; }
+.breach-result{ margin: 10px 0 0; font-size: 0.82rem; color: var(--text-mid); line-height: 1.5; }
+.breach-result.is-breached{ color: var(--danger); font-weight: 600; }
+.breach-result.is-clean{ color: var(--secondary); font-weight: 600; }
+
+/* ---------------- Report download ---------------- */
+.report-block{ margin: 4px 0 16px; }
+.report-block .btn-secondary{ width: 100%; text-align: center; margin-top: 0; }
 
 /* ---------------- Buttons ---------------- */
 .btn-primary{

@@ -20,6 +20,21 @@ Interactive API docs: `GET http://localhost:5000/api-docs`
 Raw OpenAPI spec: `docs/openapi.yaml`
 Postman collection: `postman/CipherLock.postman_collection.json`
 
+### Pairing with the CIPHERLOCK frontend
+
+The companion frontend (`../cipherlock`) calls this API automatically when
+it's reachable, with a transparent fallback to fully local analysis when
+it's not — see that project's README for details. The only setup this
+side requires is making sure the frontend's origin is in `CORS_ORIGINS`.
+If you're serving the frontend with VS Code's Live Server extension
+(default `http://127.0.0.1:5500`), the provided `.env.example` already
+includes it:
+
+```
+CORS_ORIGINS=http://localhost:5500,http://127.0.0.1:5500,http://localhost:8000
+```
+
+
 The API works **without MongoDB** for `/api/analyze`, `/api/generate`,
 and `/api/report` — those are pure computation and respond in real
 time. Only `/api/analytics` (and history persistence in the background)
